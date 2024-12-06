@@ -13,6 +13,7 @@ from indexing.embeddings import EmbeddingModel
 from indexing.vector_store import VectorStore
 from models.colpali import ColPaliModel
 from rag.pipeline import RAGPipeline
+from transformers import LlamaConfig, LlamaForCausalLM, LlamaTokenizer
 import os
 
 
@@ -87,14 +88,20 @@ def main():
     process_documents(config, logger)
     embed_model, vector_store = build_index(config, logger)
 
-    # Загрузка локальной модели ColPali
-    model_path = "colpali-v1.2"  # или "vidore/colpali-v1.2", если модель в кэше HF
-    colpali_model = ColPaliModel(model_path=model_path, device="cuda")  # Используйте "cuda", если есть GPU
+    # Загрузка модели ColPali с явной конфигурацией LLAMA
+    model_path = "colpali-v1.2"  # Путь к директории с моделью
 
-    # Загрузка индекса обратно
+    # Инициализация ColPaliModel
+    colpali_model = ColPaliModel(
+        model_path=model_path,
+        device="cuda"  # Используйте "cpu", если GPU недоступен
+    )
+
+    # Загрузка индекса
     vector_store_loaded = VectorStore(768)
     vector_store_loaded.load(config["paths"]["vector_index"])
 
+    # Инициализация RAG пайплайна
     rag_pipeline = RAGPipeline(config, embed_model, vector_store_loaded, colpali_model, logger)
 
     # Пример запроса
