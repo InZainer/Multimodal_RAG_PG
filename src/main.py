@@ -1,3 +1,4 @@
+# src/main.py
 import sys
 import json
 from pathlib import Path
@@ -13,9 +14,7 @@ from indexing.embeddings import EmbeddingModel
 from indexing.vector_store import VectorStore
 from models.colpali import ColPaliModel
 from rag.pipeline import RAGPipeline
-from transformers import LlamaConfig, LlamaForCausalLM, LlamaTokenizer
 import os
-
 
 def process_documents(config, logger):
     data_dir = Path(config["paths"]["data_dir"])
@@ -60,7 +59,6 @@ def process_documents(config, logger):
     save_json(processed_docs, config["paths"]["processed_docs"])
     return processed_docs
 
-
 def build_index(config, logger):
     with open(config["paths"]["processed_docs"], "r", encoding="utf-8") as f:
         docs = json.load(f)
@@ -79,7 +77,6 @@ def build_index(config, logger):
 
     return embed_model, vector_store
 
-
 def main():
     config = load_config("config/config.json")
     logger = get_logger(name="RAGSystem")
@@ -88,8 +85,8 @@ def main():
     process_documents(config, logger)
     embed_model, vector_store = build_index(config, logger)
 
-    # Загрузка модели ColPali с явной конфигурацией LLAMA
-    model_path = "colpali-v1.2"  # Путь к директории с моделью
+    # Загрузка модели ColPali (Qwen) с явной конфигурацией
+    model_path = "/content/qwen2-vl-7b-instruct"  # Путь к директории с моделью
 
     # Инициализация ColPaliModel
     colpali_model = ColPaliModel(
@@ -109,7 +106,6 @@ def main():
     answer = rag_pipeline.answer_query(user_query)
     print("Ответ модели:")
     print(answer)
-
 
 if __name__ == "__main__":
     main()

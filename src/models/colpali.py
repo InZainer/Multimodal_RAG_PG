@@ -1,41 +1,41 @@
-from transformers import LlamaConfig, LlamaForCausalLM
+# src/models/colpali.py
+from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
 import torch
 import logging
-from models.gemma_tokenizer import GemmaTokenizer  # Убедитесь, что путь корректен
 
 class ColPaliModel:
     def __init__(self, model_path: str, device: str = 'cuda'):
         """
-        Инициализация модели ColPali с использованием GemmaTokenizer.
+        Инициализация модели ColPali с использованием модели Qwen/Qwen2-VL-7B-Instruct.
         :param model_path: Путь к директории модели.
         :param device: Устройство ('cuda' или 'cpu').
         """
         self.logger = logging.getLogger(__name__)
         try:
-            self.logger.info(f"Loading ColPali model from {model_path} on {device}")
+            self.logger.info(f"Loading Qwen model from {model_path} on {device}")
 
             # Загрузка конфигурации модели
-            config = LlamaConfig.from_pretrained(model_path)
+            config = AutoConfig.from_pretrained(model_path)
 
-            # Загрузка кастомного токенизатора
-            self.tokenizer = GemmaTokenizer.from_pretrained(model_path)
+            # Загрузка токенизатора
+            self.tokenizer = AutoTokenizer.from_pretrained(model_path, use_fast=True)
 
             # Загрузка модели с использованием 16-битной точности для экономии памяти
-            self.model = LlamaForCausalLM.from_pretrained(
+            self.model = AutoModelForCausalLM.from_pretrained(
                 model_path,
                 config=config,
                 torch_dtype=torch.float16,
                 low_cpu_mem_usage=True
             )
 
-            # Переносим модель на устройство
+            # Перенос модели на устройство
             self.device = device
             self.model.to(self.device)
             self.model.eval()
 
             self.logger.info("Model loaded successfully.")
         except Exception as e:
-            self.logger.error(f"Error loading ColPali model: {e}")
+            self.logger.error(f"Error loading Qwen model: {e}")
             raise e
 
     def generate_answer(self, query: str, context: str, max_new_tokens: int = 500, temperature: float = 0.7, top_p: float = 0.9):
