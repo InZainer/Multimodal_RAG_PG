@@ -1,5 +1,4 @@
-# src/models/colpali.py
-from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer, Qwen2VLForConditionalGeneration
 import torch
 import logging
 

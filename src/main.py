@@ -86,7 +86,7 @@ def main():
     embed_model, vector_store = build_index(config, logger)
 
     # Загрузка модели ColPali (Qwen) с явной конфигурацией
-    model_path = "/content/qwen2-vl-7b-instruct"  # Путь к директории с моделью
+    model_path = "qwen2-vl-7b-instruct"  # Путь к директории с моделью
 
     # Инициализация ColPaliModel
     colpali_model = ColPaliModel(
