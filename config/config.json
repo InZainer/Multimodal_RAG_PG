@@ -1,5 +1,5 @@
 {
-    "use_ocr": true,  // Добавлено для включения/отключения OCR
+    "use_ocr": true, 
     "document_format_requirements": {
         "font": {
             "family": "Arial",
@@ -40,8 +40,8 @@
         "lemmatization": true
     },
     "ocr_settings": {
-        "language": "rus+eng",
-        "image_dpi": 300,
+        "language": "ru+en",
+        "image_dpi": 100,
         "page_segmentation_mode": "auto"
     },
     "formula_extraction": {
@@ -50,7 +50,7 @@
     },
     "rag_integration": {
         "retrieval_top_n": 5,
-        "model_version": "qwen2-vl-7b-instruct"
+        "model_version": "qwen2-vl-2b-instruct"
     },
     "security": {
         "access_control": {
@@ -65,12 +65,12 @@
         "metadata_index": "./indexes/metadata.json"
     },
     "model": {
-        "model_type": "qwen2-vl-7b-instruct",
-        "model_path": "qwen2-vl-7b-instruct",  // Добавьте путь к вашей модели
+        "model_type": "qwen2-vl-2b-instruct",
+        "model_path": "qwen2-vl-2b-instruct",  
         "hidden_size": 4096,
         "num_attention_heads": 32,
         "num_hidden_layers": 32,
-        "embedding_dimension": 768,  // Обновите в соответствии с вашей моделью
+        "embedding_dimension": 768, 
         "max_context_tokens": 3000,
         "chunk_size": 1000,
         "overlap_tokens": 200

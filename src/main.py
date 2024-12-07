@@ -12,7 +12,7 @@ from ingestion.formula_extractor import FormulaExtractor
 from ingestion.table_extractor import TableExtractor
 from indexing.embeddings import EmbeddingModel
 from indexing.vector_store import VectorStore
-from models.qwen_model import QwenModel  # Обновленный импорт
+from models.colpali import QwenModel  # Обновленный импорт
 from rag.pipeline import RAGPipeline
 import os
 import base64
