@@ -68,5 +68,8 @@
     "hidden_size": 4096,
     "num_attention_heads": 32,
     "num_hidden_layers": 32
+  },
+  "telegram": {
+    "token": "7795517326:AAF2zTWPw4WbSZshFgb23DBjcQ9GJmDSkqQ"
   }
 }

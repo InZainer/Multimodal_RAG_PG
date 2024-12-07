@@ -1,65 +1,70 @@
-from transformers import LlamaConfig, LlamaForCausalLM, LlamaTokenizer
+from transformers import LlamaConfig, LlamaForCausalLM
 import torch
 import logging
+from models.gemma_tokenizer import GemmaTokenizer  # Убедитесь, что путь корректен
 
 class ColPaliModel:
     def __init__(self, model_path: str, device: str = 'cuda'):
         """
-        Инициализация локальной модели ColPali с явной конфигурацией.
-        :param model_path: Путь к локальной модели (директория с config.json, pytorch_model.bin и др.).
-        :param device: 'cpu' или 'cuda'.
+        Инициализация модели ColPali с использованием GemmaTokenizer.
+        :param model_path: Путь к директории модели.
+        :param device: Устройство ('cuda' или 'cpu').
         """
         self.logger = logging.getLogger(__name__)
-        self.logger.info(f"Loading ColPali model from {model_path} on {device}")
+        try:
+            self.logger.info(f"Loading ColPali model from {model_path} on {device}")
 
-        # Явно создаём конфигурацию модели LLAMA
-        config = LlamaConfig(
-            hidden_size=4096,
-            num_attention_heads=32,
-            num_hidden_layers=32,
-            vocab_size=32000,
-            max_position_embeddings=2048
-        )
+            # Загрузка конфигурации модели
+            config = LlamaConfig.from_pretrained(model_path)
 
-        # Загружаем модель и токенайзер
-        self.tokenizer = LlamaTokenizer.from_pretrained(model_path)
-        self.model = LlamaForCausalLM.from_pretrained(model_path, config=config)
+            # Загрузка кастомного токенизатора
+            self.tokenizer = GemmaTokenizer.from_pretrained(model_path)
 
-        # Переносим модель на устройство
-        self.device = device
-        self.model.to(self.device)
-        self.model.eval()
+            # Загрузка модели с использованием 16-битной точности для экономии памяти
+            self.model = LlamaForCausalLM.from_pretrained(
+                model_path,
+                config=config,
+                torch_dtype=torch.float16,
+                low_cpu_mem_usage=True
+            )
 
-    def generate_answer(self, query: str, context: str, max_new_tokens=500, temperature=0.7, top_p=0.9):
+            # Переносим модель на устройство
+            self.device = device
+            self.model.to(self.device)
+            self.model.eval()
+
+            self.logger.info("Model loaded successfully.")
+        except Exception as e:
+            self.logger.error(f"Error loading ColPali model: {e}")
+            raise e
+
+    def generate_answer(self, query: str, context: str, max_new_tokens: int = 500, temperature: float = 0.7, top_p: float = 0.9):
         """
-        Генерация ответа с учётом контекста.
+        Генерация ответа на основе запроса и контекста.
         :param query: Вопрос пользователя.
         :param context: Контекст из документов.
-        :param max_new_tokens: Максимальное количество токенов для генерации.
-        :param temperature: Температура для генерации (регулирует креативность модели).
+        :param max_new_tokens: Максимальное количество генерируемых токенов.
+        :param temperature: Температура генерации.
         :param top_p: Top-p sampling.
         :return: Сгенерированный ответ.
         """
-        # Формируем промпт
-        prompt = f"Вопрос: {query}\nКонтекст:\n{context}\nОтвет:"
+        try:
+            prompt = f"Вопрос: {query}\nКонтекст:\n{context}\nОтвет:"
+            inputs = self.tokenizer(prompt, return_tensors='pt').to(self.device)
 
-        # Токенизация
-        inputs = self.tokenizer(prompt, return_tensors='pt').to(self.device)
+            with torch.no_grad():
+                outputs = self.model.generate(
+                    **inputs,
+                    max_new_tokens=max_new_tokens,
+                    temperature=temperature,
+                    top_p=top_p,
+                    do_sample=True
+                )
 
-        # Генерация текста
-        with torch.no_grad():
-            outputs = self.model.generate(
-                **inputs,
-                max_new_tokens=max_new_tokens,
-                temperature=temperature,
-                top_p=top_p,
-                do_sample=True
-            )
-
-        # Декодируем ответ
-        answer = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
-
-        # Извлекаем только часть после "Ответ:"
-        if "Ответ:" in answer:
-            answer = answer.split("Ответ:", 1)[-1].strip()
-        return answer
+            answer = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+            if "Ответ:" in answer:
+                answer = answer.split("Ответ:", 1)[-1].strip()
+            return answer
+        except Exception as e:
+            self.logger.error(f"Error generating answer: {e}")
+            return "Извините, произошла ошибка при генерации ответа."
