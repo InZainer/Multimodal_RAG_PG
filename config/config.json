@@ -1,0 +1,78 @@
+{
+    "use_ocr": true,  // Добавлено для включения/отключения OCR
+    "document_format_requirements": {
+        "font": {
+            "family": "Arial",
+            "size": "12pt"
+        },
+        "margins": {
+            "top": "1in",
+            "bottom": "1in",
+            "left": "1in",
+            "right": "1in"
+        },
+        "line_spacing": "1.5",
+        "heading_style": {
+            "h1": {
+                "font_size": "16pt",
+                "bold": true
+            },
+            "h2": {
+                "font_size": "14pt",
+                "bold": true
+            }
+        }
+    },
+    "metadata_extraction": {
+        "fields": {
+            "author": true,
+            "created_date": true,
+            "last_modified_date": true,
+            "tags": true,
+            "document_type": true
+        },
+        "custom_tags_pattern": "#Тег:\\s*(\\w+)"
+    },
+    "normalization_rules": {
+        "remove_special_characters": true,
+        "lowercase": true,
+        "remove_stopwords": true,
+        "lemmatization": true
+    },
+    "ocr_settings": {
+        "language": "rus+eng",
+        "image_dpi": 300,
+        "page_segmentation_mode": "auto"
+    },
+    "formula_extraction": {
+        "enabled": true,
+        "format": "LaTeX"
+    },
+    "rag_integration": {
+        "retrieval_top_n": 5,
+        "model_version": "qwen2-vl-7b-instruct"
+    },
+    "security": {
+        "access_control": {
+            "role_based_filtering": true,
+            "encryption_at_rest": true
+        }
+    },
+    "paths": {
+        "data_dir": "./data",
+        "processed_docs": "./processed/processed_docs.json",
+        "vector_index": "./indexes/vector.index",
+        "metadata_index": "./indexes/metadata.json"
+    },
+    "model": {
+        "model_type": "qwen2-vl-7b-instruct",
+        "model_path": "qwen2-vl-7b-instruct",  // Добавьте путь к вашей модели
+        "hidden_size": 4096,
+        "num_attention_heads": 32,
+        "num_hidden_layers": 32,
+        "embedding_dimension": 768,  // Обновите в соответствии с вашей моделью
+        "max_context_tokens": 3000,
+        "chunk_size": 1000,
+        "overlap_tokens": 200
+    }
+}
