@@ -20,7 +20,7 @@ class QwenModel:
             self.tokenizer = AutoTokenizer.from_pretrained(model_path, use_fast=True)
 
             # Загрузка модели с использованием 16-битной точности для экономии памяти
-            self.model = AutoModelForCausalLM.from_pretrained(
+            self.model = Qwen2VLForConditionalGeneration.from_pretrained(
                 model_path,
                 config=config,
                 torch_dtype=torch.float16,
