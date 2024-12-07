@@ -4,11 +4,11 @@ from typing import List
 import logging
 
 class RAGPipeline:
-    def __init__(self, config, embed_model, vector_store, colpali_model, logger=None):
+    def __init__(self, config, embed_model, vector_store, qwen_model, logger=None):
         self.config = config
         self.embed_model = embed_model
         self.vector_store = vector_store
-        self.colpali_model = colpali_model
+        self.qwen_model = qwen_model
         self.logger = logger or logging.getLogger(__name__)
 
         with open(self.config["paths"]["metadata_index"], "r", encoding='utf-8') as f:
@@ -47,7 +47,7 @@ class RAGPipeline:
         Разбиваем текст на чанки по self.chunk_size токенов.
         Для упрощения будем считать, что 1 токен ~ 1 слово (на практике надо токенизировать).
 
-        Для более точной оценки нужно использовать self.colpali_model.tokenizer.
+        Для более точной оценки нужно использовать self.qwen_model.tokenizer.
         """
         tokens = text.split()
         chunks = []
@@ -63,14 +63,14 @@ class RAGPipeline:
 
     def tokenize_length(self, text: str) -> int:
         # Реальный подсчёт токенов через tokenizer
-        inputs = self.colpali_model.tokenizer(text, return_tensors='pt')
+        inputs = self.qwen_model.tokenizer(text, return_tensors='pt')
         return inputs.input_ids.shape[1]
 
     def split_into_chunks_by_tokens(self, text: str, max_tokens: int, overlap_tokens: int) -> List[str]:
         """
         Более точный вариант чанкования по токенам, а не по словам.
         """
-        input_ids = self.colpali_model.tokenizer(text, return_tensors='pt').input_ids[0]
+        input_ids = self.qwen_model.tokenizer(text, return_tensors='pt').input_ids[0]
         chunks = []
         start = 0
         length = input_ids.shape[0]
@@ -78,7 +78,7 @@ class RAGPipeline:
         while start < length:
             end = start + max_tokens
             chunk_ids = input_ids[start:end]
-            chunk_text = self.colpali_model.tokenizer.decode(chunk_ids, skip_special_tokens=True)
+            chunk_text = self.qwen_model.tokenizer.decode(chunk_ids, skip_special_tokens=True)
             chunks.append(chunk_text)
             start = end - overlap_tokens
             if start < 0:
@@ -97,13 +97,12 @@ class RAGPipeline:
             max_tokens_for_chunk = 10000
             overlap_tokens = 300
             chunks = self.split_into_chunks_by_tokens(context, max_tokens_for_chunk, overlap_tokens)
-
             # Генерируем ответ для каждого чанка и объединяем
             # Логика объединения может быть разной: можно конкатенировать, можно искать итоговый ответ среди частей
             answers = []
             for i, ch in enumerate(chunks):
                 self.logger.info(f"Generating answer for chunk {i+1}/{len(chunks)}")
-                ans = self.colpali_model.generate_answer(query, ch)
+                ans = self.qwen_model.generate_answer(query, ch)
                 answers.append(ans)
 
             # Можно просто вернуть все ответы или попытаться их суммировать
@@ -111,6 +110,6 @@ class RAGPipeline:
             final_answer = "\n---\n".join(answers)
         else:
             # Контекст помещается в один запрос
-            final_answer = self.colpali_model.generate_answer(query, context)
+            final_answer = self.qwen_model.generate_answer(query, context)
 
         return final_answer

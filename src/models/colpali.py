@@ -2,10 +2,10 @@ from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer, Qwen2V
 import torch
 import logging
 
-class ColPaliModel:
+class QwenModel:
     def __init__(self, model_path: str, device: str = 'cuda'):
         """
-        Инициализация модели ColPali с использованием модели Qwen/Qwen2-VL-7B-Instruct.
+        Инициализация модели Qwen с использованием модели Qwen/Qwen2-VL-7B-Instruct.
         :param model_path: Путь к директории модели.
         :param device: Устройство ('cuda' или 'cpu').
         """
@@ -32,7 +32,7 @@ class ColPaliModel:
             self.model.to(self.device)
             self.model.eval()
 
-            self.logger.info("Model loaded successfully.")
+            self.logger.info("Qwen model loaded successfully.")
         except Exception as e:
             self.logger.error(f"Error loading Qwen model: {e}")
             raise e

@@ -1,4 +1,3 @@
-# src/main.py
 import sys
 import json
 from pathlib import Path
@@ -12,9 +11,17 @@ from ingestion.formula_extractor import FormulaExtractor
 from ingestion.table_extractor import TableExtractor
 from indexing.embeddings import EmbeddingModel
 from indexing.vector_store import VectorStore
-from models.colpali import ColPaliModel
+from models.colpali import QwenModel  # Обновленный импорт
 from rag.pipeline import RAGPipeline
+from transformers import Qwen2VLForConditionalGeneration, AutoTokenizer, AutoProcessor
 import os
+import base64
+from byaldi import RAGMultiModalModel
+from claudette import *
+from qwen_vl_utils import process_vision_info
+from pdf2image import convert_from_path
+from IPython.display import Image, display
+import torch
 
 def process_documents(config, logger):
     data_dir = Path(config["paths"]["data_dir"])
@@ -85,21 +92,21 @@ def main():
     process_documents(config, logger)
     embed_model, vector_store = build_index(config, logger)
 
-    # Загрузка модели ColPali (Qwen) с явной конфигурацией
-    model_path = "qwen2-vl-7b-instruct"  # Путь к директории с моделью
+    # Загрузка модели Qwen2VL
+    model_path = "qwen2-vl-7b-instruct"  # Обновите путь к вашей модели
 
-    # Инициализация ColPaliModel
-    colpali_model = ColPaliModel(
+    # Инициализация QwenModel
+    qwen_model = QwenModel(
         model_path=model_path,
         device="cuda"  # Используйте "cpu", если GPU недоступен
     )
 
     # Загрузка индекса
-    vector_store_loaded = VectorStore(768)
+    vector_store_loaded = VectorStore(768)  # Убедитесь, что размерность соответствует
     vector_store_loaded.load(config["paths"]["vector_index"])
 
     # Инициализация RAG пайплайна
-    rag_pipeline = RAGPipeline(config, embed_model, vector_store_loaded, colpali_model, logger)
+    rag_pipeline = RAGPipeline(config, embed_model, vector_store_loaded, qwen_model, logger)
 
     # Пример запроса
     user_query = "Долевое участие металлов в EBITDA компании? Какой процент принес Ni и Cu? Учесть контекст документов."
